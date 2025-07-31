@@ -7,7 +7,8 @@ import os
 import sys
 import subprocess
 import logging
-import pkg_resources
+# import pkg_resources
+from importlib import metadata, resources
 import re
 import glob
 
@@ -80,7 +81,7 @@ def msm_version():
     except:
         version = ''
     info = "MSM:{0}Path: {1}{0}Version: {2}".format('{}    '.format(os.linesep),
-            msm_path, version)
+                                                    msm_path, version)
     return info
 
 def verify_msm_available():
@@ -88,7 +89,7 @@ def verify_msm_available():
     msm = find_msm()
     if not msm:
         logger.error("Cannot find \'msm\' binary. Please download and install MSM from "
-                "https://github.com/ecr05/MSM_HOCR_macOSX, or run with the \"--surf_reg FS\" option")
+                     "https://github.com/ecr05/MSM_HOCR_macOSX, or run with the \"--surf_reg FS\" option")
         sys.exit(1)
 
 def find_scene_templates():
@@ -102,7 +103,7 @@ def find_scene_templates():
     if dir_hcp_templates is None:
         ciftify_path = os.path.dirname(__file__)
         dir_hcp_templates = os.path.abspath(os.path.join(find_ciftify_global(),
-                'scene_templates'))
+                                                         'scene_templates'))
     return dir_hcp_templates
 
 def find_ciftify_global():
@@ -171,13 +172,13 @@ def wb_command_version():
     wb_path = find_workbench()
     if wb_path is None:
         raise OSError("wb_command not found. Please check that it is "
-                "installed.")
+                      "installed.")
     wb_help = util.check_output('wb_command')
     wb_version = wb_help.split(os.linesep)[0:3]
     sep = '{}    '.format(os.linesep)
     wb_v = sep.join(wb_version)
-    all_info = 'wb_command:{0}Path: {1}{0}{2}'.format(sep,wb_path,wb_v)
-    return(all_info)
+    all_info = 'wb_command:{0}Path: {1}{0}{2}'.format(sep, wb_path, wb_v)
+    return (all_info)
 
 def freesurfer_version():
     '''
@@ -186,17 +187,17 @@ def freesurfer_version():
     fs_path = find_freesurfer()
     if fs_path is None:
         raise OSError("Freesurfer cannot be found. Please check that "
-            "it is installed.")
+                      "it is installed.")
     try:
         fs_buildstamp = os.path.join(os.path.dirname(fs_path),
-                'build-stamp.txt')
+                                     'build-stamp.txt')
         with open(fs_buildstamp) as text_file:
             bstamp = text_file.read()
     except:
         return "freesurfer build information not found."
-    bstamp = bstamp.replace(os.linesep,'')
+    bstamp = bstamp.replace(os.linesep, '')
     info = "freesurfer:{0}Path: {1}{0}Build Stamp: {2}".format(
-            '{}    '.format(os.linesep),fs_path, bstamp)
+        '{}    '.format(os.linesep), fs_path, bstamp)
     return info
 
 def fsl_version():
@@ -206,19 +207,18 @@ def fsl_version():
     fsl_path = find_fsl()
     if fsl_path is None:
         raise OSError("FSL not found. Please check that it is "
-                "installed")
+                      "installed")
     try:
         fsl_buildstamp = os.path.join(fsl_path, 'etc',
-                'fslversion')
+                                      'fslversion')
         with open(fsl_buildstamp) as text_file:
             bstamp = text_file.read()
     except:
         return "FSL build information not found."
-    bstamp = bstamp.replace(os.linesep,'')
+    bstamp = bstamp.replace(os.linesep, '')
     info = "FSL:{0}Path: {1}{0}Version: {2}".format('{}    '.format(os.linesep),
-            fsl_path, bstamp)
+                                                    fsl_path, bstamp)
     return info
-
 
 
 def ciftify_version(file_name=None):
@@ -230,8 +230,9 @@ def ciftify_version(file_name=None):
 
     sep = '{}    '.format(os.linesep)
     try:
-        version = pkg_resources.get_distribution('ciftify').version
-    except pkg_resources.DistributionNotFound:
+        version = metadata.version('ciftify')
+        # version = pkg_resources.get_distribution('ciftify').version
+    except metadata.PackageNotFoundError:
         # Ciftify not installed, but a git repo, so return commit info
         pass
     else:
@@ -248,12 +249,12 @@ def ciftify_version(file_name=None):
 
     if not git_log:
         logger.error("Something went wrong while retrieving git log. Returning "
-                "ciftify path only.")
+                     "ciftify path only.")
         return "ciftify:{}Path: {}".format(sep, ciftify_path)
 
     commit_num, commit_date = read_commit(git_log)
     info = "ciftify:{0}Path: {1}{0}{2}{0}{3}".format('{}    '.format(sep),
-            ciftify_path, commit_num, commit_date)
+                                                     ciftify_path, commit_num, commit_date)
 
     if not file_name:
         return info
@@ -267,8 +268,8 @@ def ciftify_version(file_name=None):
 
     commit_num, commit_date = read_commit(file_log)
     info = "{1}{5}Last commit for {2}:{0}{3}{0}{4}".format('{}    '.format(
-            os.linesep), info, file_name, commit_num,
-            commit_date, os.linesep)
+        os.linesep), info, file_name, commit_num,
+        commit_date, os.linesep)
 
     return info
 
@@ -287,7 +288,7 @@ def get_git_log(git_dir, file_name=None):
         # Fail safe in git command returns non-zero value
         logger = logging.getLogger(__name__)
         logger.error("Unrecognized command: {} "
-                "\nReturning empty git log.".format(git_cmd))
+                     "\nReturning empty git log.".format(git_cmd))
         file_log = ""
 
     return file_log
@@ -303,7 +304,7 @@ def system_info():
     sys_info = os.uname()
     sep = '{}    '.format(os.linesep)
     info = "System Info:{0}OS: {1}{0}Hostname: {2}{0}Release: {3}{0}Version: " \
-            "{4}{0}Machine: {5}".format(
+        "{4}{0}Machine: {5}".format(
             sep, sys_info[0], sys_info[1], sys_info[2], sys_info[3],
             sys_info[4])
     return info
@@ -318,12 +319,12 @@ class FSLog:
         fs_scripts = os.path.join(freesurfer_folder, 'scripts')
         self.status = self._get_status(fs_scripts)
         self.build = self._get_build(os.path.join(fs_scripts,
-                'build-stamp.txt'))
+                                                  'build-stamp.txt'))
         self.version = self.get_version(self.build)
 
         try:
             recon_contents = self.parse_recon_done(os.path.join(fs_scripts,
-                    'recon-all.done'))
+                                                                'recon-all.done'))
         except:
             logger.warning('Failed to parse the scripts/recon-all.done log')
             recon_contents = {}
@@ -332,10 +333,9 @@ class FSLog:
         self.start = self.get_date(recon_contents.get('START_TIME', ''))
         self.end = self.get_date(recon_contents.get('END_TIME', ''))
         self.kernel = self.get_kernel(recon_contents.get('UNAME', ''))
-        self.cmdargs = self.get_cmdargs(recon_contents.get('CMDARGS',''))
+        self.cmdargs = self.get_cmdargs(recon_contents.get('CMDARGS', ''))
         self.args = self.get_args(recon_contents.get('CMDARGS', ''))
         self.nii_inputs = self.get_niftis(recon_contents.get('CMDARGS', ''))
-
 
     def read_log(self, path):
         try:
@@ -359,7 +359,7 @@ class FSLog:
             status = ''
         else:
             raise Exception("No freesurfer log files found for "
-                    "{}".format(scripts))
+                            "{}".format(scripts))
 
         return status
 
