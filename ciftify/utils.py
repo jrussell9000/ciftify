@@ -46,21 +46,21 @@ def get_subj(path, user_filter=None):
     return subjects
 
 def FWHM2Sigma(FWHM):
-  ''' convert the FWHM to a Sigma value '''
-  if float(FWHM) == 0:
-      sigma = 0
-  else:
-      sigma = float(FWHM) / (2 * math.sqrt(2*math.log(2)))
-  return(sigma)
+    ''' convert the FWHM to a Sigma value '''
+    if float(FWHM) == 0:
+        sigma = 0
+    else:
+        sigma = float(FWHM) / (2 * math.sqrt(2 * math.log(2)))
+    return (sigma)
 
 
-def make_dir(dir_name, dry_run=False, suppress_exists_error = False):
+def make_dir(dir_name, dry_run=False, suppress_exists_error=False):
     # Wait till logging is needed to get logger, so logging configuration
     # set in main module is respected
     logger = logging.getLogger(__name__)
     if dry_run:
-        logger.debug("Dry-run, skipping creation of directory "\
-                "{}".format(dir_name))
+        logger.debug("Dry-run, skipping creation of directory "
+                     "{}".format(dir_name))
         return
 
     try:
@@ -73,7 +73,7 @@ def make_dir(dir_name, dry_run=False, suppress_exists_error = False):
     except OSError:
         logger.error('Could not create directory {}'.format(dir_name))
 
-def check_output_writable(output_file, exit_on_error = True):
+def check_output_writable(output_file, exit_on_error=True):
     ''' will test if the directory for an output_file exists and can be written too '''
     logger = logging.getLogger(__name__)
     dirname = os.path.dirname(output_file)
@@ -82,27 +82,27 @@ def check_output_writable(output_file, exit_on_error = True):
     if result == False:
         if exit_on_error:
             logger.error('Directory for output {} does not exist, '
-                'or you do not have permission to write there'.format(output_file))
+                         'or you do not have permission to write there'.format(output_file))
             sys.exit(1)
-    return(result)
+    return (result)
 
-def check_input_readable(path, exit_on_error = True):
+def check_input_readable(path, exit_on_error=True):
     '''check that path exists and is readable, exits upon failure by default'''
     logger = logging.getLogger(__name__)
     if not os.access(path, os.R_OK):
         logger.error('Input {}, does not exist, or you do not have permission to read it.'
-            ''.format(path))
+                     ''.format(path))
         if exit_on_error:
             sys.exit(1)
-    return(path)
+    return (path)
 
 def log_arguments(arguments):
     '''send a formatted version of the arguments to the logger'''
     logger = logging.getLogger(__name__)
     input_args = yaml.dump(arguments, default_flow_style=False)
     sep = '{}    '.format(os.linesep)
-    input_args2 = input_args.replace(os.linesep,sep)
-    input_args3 = input_args2.replace('!!python/object/new:docopt.Dict\ndictitems:','')
+    input_args2 = input_args.replace(os.linesep, sep)
+    input_args3 = input_args2.replace('!!python/object/new:docopt.Dict\ndictitems:', '')
     logger.info('Arguments:{}{}'.format(sep, input_args3))
 
 def section_header(title):
@@ -111,8 +111,8 @@ def section_header(title):
 -------------------------------------------------------------
 {} : {}
 -------------------------------------------------------------
-'''.format(datetime.datetime.now(),title)
-    return(header)
+'''.format(datetime.datetime.now(), title)
+    return (header)
 
 def ciftify_logo():
     ''' this logo is ascii art with fender font'''
@@ -125,7 +125,7 @@ def ciftify_logo():
 `|..' .||. .||.    `|..' .||. .||.       ||
                                       ,  |'
                                        ''   '''
-    return(logo)
+    return (logo)
 
 def pint_logo():
     ''' logo from ascii text with font fender'''
@@ -136,7 +136,7 @@ def pint_logo():
  ||         ||     ||  \\||     ||
 .||      |..||..| .||   \||.   .||.
 """
-    return(logo)
+    return (logo)
 
 def add_metaclass(metaclass):
     """Class decorator for creating a class with a metaclass. - Taken from six
@@ -155,8 +155,9 @@ def add_metaclass(metaclass):
     return wrapper
 
 class TempDir:
-    def __init__(self):
+    def __init__(self, debug):
         self.path = None
+        self.debug = debug
         return
 
     def __enter__(self):
@@ -164,7 +165,7 @@ class TempDir:
         return self.path
 
     def __exit__(self, type, value, traceback):
-        if self.path is not None:
+        if self.path is not None and not self.debug:
             shutil.rmtree(self.path)
 
 class TempSceneDir:
@@ -175,6 +176,7 @@ class TempSceneDir:
     file due to the fact that scene files contain a large number of relative
     paths and the images will come out broken if it is put anywhere else.
     """
+
     def __init__(self, hcp_dir):
         self.base = os.path.join(hcp_dir, 'scene')
 
@@ -197,7 +199,7 @@ class WorkDirSettings:
                 temp_dir = arguments['--hcp-data-dir']
                 if temp_dir:
                     logger.warning("Argument --hcp-data-dir has been deprecated. "
-                    "Please instead use --ciftify-work-dir in the future.")
+                                   "Please instead use --ciftify-work-dir in the future.")
             except KeyError:
                 temp_dir = None
         try:
@@ -237,6 +239,7 @@ class WorkFlowSettings(WorkDirSettings):
     A convenience class for parsing settings that are shared
     by ciftify_recon_all and ciftify_subject_fmri
     '''
+
     def __init__(self, arguments):
         WorkDirSettings.__init__(self, arguments)
         self.FSL_dir = self.__set_FSL_dir()
@@ -256,17 +259,17 @@ class WorkFlowSettings(WorkDirSettings):
         fsl_data = os.path.normpath(os.path.join(fsl_dir, 'data'))
         if not os.path.exists(fsl_data):
             logger.warn("Found {} for FSL path but {} does not exist. May "
-                    "prevent registration files from being found.".format(
-                    fsl_dir, fsl_data))
+                        "prevent registration files from being found.".format(
+                            fsl_dir, fsl_data))
         return fsl_dir
 
     def __read_settings(self, yaml_file):
         if yaml_file is None:
             yaml_file = os.path.join(ciftify.config.find_ciftify_global(),
-                    'ciftify_workflow_settings.yaml')
+                                     'ciftify_workflow_settings.yaml')
         if not os.path.exists(yaml_file):
             logger.critical("Settings yaml file {} does not exist"
-                "".format(yaml_file))
+                            "".format(yaml_file))
             sys.exit(1)
 
         try:
@@ -274,7 +277,7 @@ class WorkFlowSettings(WorkDirSettings):
                 config = yaml.load(yaml_stream, Loader=yaml.SafeLoader)
         except:
             logger.critical("Cannot read yaml config file {}, check formatting."
-                    "".format(yaml_file))
+                            "".format(yaml_file))
             sys.exit(1)
 
         return config
@@ -296,7 +299,7 @@ class WorkFlowSettings(WorkDirSettings):
             resolution_config = method_config[standard_res]
         except KeyError:
             logger.error("Registration resolution {} not defined for method "
-                    "{}".format(standard_res, method))
+                         "{}".format(standard_res, method))
             sys.exit(1)
 
         for key in resolution_config.keys():
@@ -305,12 +308,12 @@ class WorkFlowSettings(WorkDirSettings):
             reg_item = os.path.join(self.FSL_dir, resolution_config[key])
             if not os.path.exists(reg_item):
                 logger.error("Item required for registration does not exist: "
-                        "{}".format(reg_item))
+                             "{}".format(reg_item))
                 sys.exit(1)
             resolution_config[key] = reg_item
         return resolution_config
 
-def get_number_cpus(user_n_cpus = None):
+def get_number_cpus(user_n_cpus=None):
     ''' reads the number of CPUS available for multithreaded processes
     either from a user argument, or from the enviroment'''
     if user_n_cpus:
@@ -340,6 +343,7 @@ class VisSettings(WorkDirSettings):
     Will raise SystemExit if the user hasn't set the ciftify-work-dir/hcp-data-dir
     and the environment variable isn't set.
     """
+
     def __init__(self, arguments, qc_mode):
         WorkDirSettings.__init__(self, arguments)
         try:
@@ -361,9 +365,9 @@ class VisSettings(WorkDirSettings):
 
 def run(cmd, dryrun=False,
         suppress_stdout=False,
-        suppress_echo = False,
-        suppress_stderr = False,
-        env = None):
+        suppress_echo=False,
+        suppress_stderr=False,
+        env=None):
     """
     Runs command in default shell, returning the return code and logging the
     output. It can take a cmd argument as a string or a list.
@@ -400,7 +404,7 @@ def run(cmd, dryrun=False,
         merged_env.update(env)
 
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, env=merged_env)
+                         stderr=subprocess.PIPE, env=merged_env)
     out, err = p.communicate()
     # py3 compability :(
     out = out.decode('utf-8')
@@ -408,7 +412,7 @@ def run(cmd, dryrun=False,
 
     if p.returncode:
         logger.error('cmd: {} \n Failed with returncode {}'.format(cmd,
-                p.returncode))
+                                                                   p.returncode))
     if len(out) > 0:
         if suppress_stdout:
             logger.debug(out)
@@ -444,15 +448,16 @@ class cd:
         os.chdir(self.old_path)
 
 def get_stdout(cmd_list, echo=True):
-   ''' run the command given from the cmd list and report the stdout result
+    ''' run the command given from the cmd list and report the stdout result
 
-   Input: A command list'''
-   logger = logging.getLogger(__name__)
-   if echo: logger.info('Evaluating: {}'.format(' '.join(cmd_list)))
-   stdout = subprocess.check_output(cmd_list)
-   return stdout.decode('utf-8')
+    Input: A command list'''
+    logger = logging.getLogger(__name__)
+    if echo:
+        logger.info('Evaluating: {}'.format(' '.join(cmd_list)))
+    stdout = subprocess.check_output(cmd_list)
+    return stdout.decode('utf-8')
 
-def check_output(command, stderr=None, shell = True):
+def check_output(command, stderr=None, shell=True):
     """ Ensures python 3 compatibility by always decoding the return value of
     subprocess.check_output
 
@@ -473,15 +478,15 @@ def ciftify_log_endswith_done(ciftify_log):
 def has_ciftify_recon_all_run(ciftify_work_dir, subject):
     '''determine if ciftify_recon_all has already completed'''
     ciftify_log = os.path.join(ciftify_work_dir,
-                        subject,
-                        'cifti_recon_all.log')
+                               subject,
+                               'cifti_recon_all.log')
     return ciftify_log_endswith_done(ciftify_log)
 
 def has_ciftify_fmri_run(subject, fmriname, ciftify_work_dir):
     '''determine if ciftify_recon_all has already completed'''
     ciftify_log = os.path.join(ciftify_work_dir,
-                        subject,
-                        'MNINonLinear', 'Results', fmriname,
-                        'ciftify_subject_fmri.log')
+                               subject,
+                               'MNINonLinear', 'Results', fmriname,
+                               'ciftify_subject_fmri.log')
     # print('ciftify_subject_fmri done {}'.format(ciftify_log_endswith_done(ciftify_log)))
     return ciftify_log_endswith_done(ciftify_log)

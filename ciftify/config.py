@@ -155,7 +155,7 @@ def find_work_dir():
     if work_dir is None:
         work_dir = os.getenv('HCP_DATA')
         if work_dir is not None:
-            logger.working("Environment variable HCP_DATA has been deprecated. \
+            logger.warning("Environment variable HCP_DATA has been deprecated. \
             Please instead use CIFTIFY_WORKDIR in the future.")
         else:
             work_dir = None
